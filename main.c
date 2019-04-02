@@ -16,12 +16,15 @@
 #include <string.h>
 
 #define TAMANHO_REGISTRO 80
-#define TAMANHO_CAMPOS_VARIAVEIS 53
+#define TAMANHO_CAMPOS_VARIAVEIS 57
 
 /*
  * 
  */
 int main() {
+
+    char TAG_CAMPO_CIDADE = '4';
+    char TAG_CAMPO_ESCOLA = '5';
 
     //comando a ser lido
     char comando[100] = "1 csv.csv";
@@ -71,6 +74,8 @@ int main() {
                 if (result != NULL) {
                     //printf("%s\n", result);
 
+
+
                     size_t ln = strlen(result) - 1;
                     //remove o enter e o carriage return
                     if (result[ln] == '\n') {
@@ -88,11 +93,11 @@ int main() {
                         //grava o valor de removido
                         char arr = '-';
                         fwrite(&arr, sizeof (arr), 1, wbFile);
-                        
+
                         //grava o encadeamento
                         int encadeamento = -1;
                         fwrite(&encadeamento, sizeof (encadeamento), 1, wbFile);
-                        
+
                         //começa a ler os dados
                         char * tmp = strsep(&result, ",");
 
@@ -106,7 +111,7 @@ int main() {
 
                         double nota = -1;
 
-                        if (strcmp(tmp, "") != 0) {
+                        if (strlen(tmp)) {
                             nota = strtod(tmp, NULL);
                         }
                         //grava no arquivo binario
@@ -118,36 +123,69 @@ int main() {
                         tmp = strsep(&result, ",");
                         char data[10] = "\0@@@@@@@@@";
 
-                        if (strcmp(tmp, "") != 0) {
+                        if (strlen(tmp)) {
                             strcpy(data, tmp);
                         }
 
                         fwrite(&data, sizeof (data), 1, wbFile);
 
 
+                        size_t totalBytes = 27;
+
 
                         char * cidade = strsep(&result, ",");
-                        fwrite(cidade, strlen(cidade) + 1, 1, wbFile);
+
+                        int tamanhoCidade = strlen(cidade);
+                        if (tamanhoCidade > 0) {
+
+                            //salva o tamanho do campo
+                            fwrite(&tamanhoCidade, sizeof (tamanhoCidade), 1, wbFile);
+
+                            //salva a tag do campo
+                            fwrite(&TAG_CAMPO_CIDADE, sizeof (char), 1, wbFile);
+
+                            fwrite(cidade, tamanhoCidade, 1, wbFile);
+
+                            totalBytes += 5 + tamanhoCidade;
+                        }
+
                         /*size_t ok = sizeof(cidade);
                         ok = strlen(cidade);
                         break;*/
 
                         char * nomeEscola = strsep(&result, ",");
-                        fwrite(nomeEscola, strlen(nomeEscola) + 1, 1, wbFile);
+
+                        int tamanhoEscola = strlen(nomeEscola);
+
+                        if (tamanhoEscola > 0) {
+                            //salva o tamanho do campo
+                            fwrite(&tamanhoEscola, sizeof (tamanhoEscola), 1, wbFile);
+
+                            //salva a tag do campo
+                            fwrite(&TAG_CAMPO_ESCOLA, sizeof(char), 1, wbFile);
+
+                            fwrite(nomeEscola, tamanhoEscola, 1, wbFile);
+
+                            totalBytes += 5 + tamanhoEscola;
+                        }
 
 
 
                         //escreve @ nos bytes restantes
-                        size_t totalBytes = strlen(cidade) + strlen(nomeEscola)+2;
+
+
+                        //int TotalBytes = 23;
 
                         arr = '@';
-                        for (; totalBytes < TAMANHO_CAMPOS_VARIAVEIS; totalBytes++) {
+                        for (; totalBytes < TAMANHO_REGISTRO; totalBytes++) {
                             fwrite(&arr, sizeof (arr), 1, wbFile);
                         }
 
 
-                        //if(vez==6)
-                        break;
+                        /*if(vez==269){
+                            int a = 10;
+                            break;
+                        }*/
                     }
                 }
 
@@ -157,7 +195,7 @@ int main() {
 
             }
 
-
+            printf("%p", wbFile);
             fclose(wbFile);
             fclose(file);
 
