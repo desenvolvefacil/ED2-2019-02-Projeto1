@@ -16,7 +16,7 @@
 #include <string.h>
 
 #define TAMANHO_REGISTRO 80
-#define TAMANHO_CAMPOS_VARIAVEIS 58
+#define TAMANHO_CAMPOS_VARIAVEIS 53
 
 /*
  * 
@@ -85,6 +85,14 @@ int main() {
                         //recolhe os dados do cabecalho
 
                     } else {
+                        //grava o valor de removido
+                        char arr = '-';
+                        fwrite(&arr, sizeof (arr), 1, wbFile);
+                        
+                        //grava o encadeamento
+                        int encadeamento = -1;
+                        fwrite(&encadeamento, sizeof (encadeamento), 1, wbFile);
+                        
                         //começa a ler os dados
                         char * tmp = strsep(&result, ",");
 
@@ -132,13 +140,13 @@ int main() {
                         //escreve @ nos bytes restantes
                         size_t totalBytes = strlen(cidade) + strlen(nomeEscola)+2;
 
-                        char arr = '@';
+                        arr = '@';
                         for (; totalBytes < TAMANHO_CAMPOS_VARIAVEIS; totalBytes++) {
                             fwrite(&arr, sizeof (arr), 1, wbFile);
                         }
 
 
-                        if(vez==4)
+                        //if(vez==6)
                         break;
                     }
                 }
@@ -155,6 +163,8 @@ int main() {
 
 
             //char buff2[200];
+            char arr;
+            int encadeamento;
             int nroInscricao;
             double nota;
             char data[10];
@@ -163,7 +173,9 @@ int main() {
             char tmp[TAMANHO_CAMPOS_VARIAVEIS];
 
             file = fopen(nomeArqWB, "rb");
-            fread(&nroInscricao, sizeof (int), 1, file);
+            fread(&arr, sizeof (arr), 1, file);
+            fread(&encadeamento, sizeof (encadeamento), 1, file);
+            fread(&nroInscricao, sizeof (nroInscricao), 1, file);
             fread(&nota, sizeof (nota), 1, file);
 
             fread(&tmp, sizeof (data), 1, file);
@@ -177,7 +189,7 @@ int main() {
             printf("%d\n%lf\n%s\n", nroInscricao, nota, data);
             //printf("%s\n",tmp);
 
-            size_t a = sizeof (cidade);
+            //size_t a = sizeof (cidade);
 
             fclose(file);
             printf("Acabou");
