@@ -15,7 +15,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define TAMANHO_PAGINA 16000
 #define TAMANHO_REGISTRO 80
+#define nomeArqWB "wbfile.bin"
 
 /*
  * 
@@ -26,7 +28,9 @@ int main() {
     char TAG_CAMPO_ESCOLA = '5';
 
     //comando a ser lido
-    char comando[100] = "1 csv.csv";
+    //char comando[100] = "1 csv.csv";
+    char comando[100] = "2 wbfile.bin";
+    
     //varicavel que guarda a opcao selecioanda
     int opc = 0;
 
@@ -44,24 +48,19 @@ int main() {
     //verifica o inteiro digitado no comando
     opc = atoi(strtok(comando, " "));
 
-
-
     if (opc == 1) {
 
         char * nomeArquivo = strtok(NULL, " ");
 
         FILE * file = fopen(nomeArquivo, "r+");
 
-
-
         if (file) {
-            char *nomeArqWB = "wbfile.bin";
+            
 
             //cria o arquivo para salvar os dados
             FILE * wbFile = fopen(nomeArqWB, "wb+");
 
-
-            char buff[200];
+            char buff[80];
 
             int vez = 1;
 
@@ -72,8 +71,6 @@ int main() {
                 //verifica se e uma linha valida
                 if (result != NULL) {
                     //printf("%s\n", result);
-
-
 
                     size_t ln = strlen(result) - 1;
                     //remove o enter e o carriage return
@@ -123,7 +120,7 @@ int main() {
                         char data[10] = "\0@@@@@@@@@";
 
                         if (strlen(tmp)) {
-                            strcpy(data, tmp);
+                            strncpy(data, tmp,sizeof(data));
                         }
 
                         fwrite(&data, sizeof (data), 1, wbFile);
@@ -161,7 +158,7 @@ int main() {
                             fwrite(&tamanhoEscola, sizeof (tamanhoEscola), 1, wbFile);
 
                             //salva a tag do campo
-                            fwrite(&TAG_CAMPO_ESCOLA, sizeof(char), 1, wbFile);
+                            fwrite(&TAG_CAMPO_ESCOLA, sizeof (char), 1, wbFile);
 
                             fwrite(nomeEscola, tamanhoEscola, 1, wbFile);
 
@@ -192,10 +189,18 @@ int main() {
             fclose(wbFile);
             fclose(file);
 
-            //char cmd[] = "hexdump -C ";
+            
+        } else {
+            printf("Falha no carregamento do arquivo.");
+        }
+
+    }else if(opc==2){
+         char * nomeArquivo = strtok(NULL, " ");
+         
+         //char cmd[] = "hexdump -C ";
             //system("clear");
             //system(strcat(cmd,nomeArqWB));
-            
+
             //exit(0);
             //char buff2[200];
             char arr;
@@ -203,14 +208,14 @@ int main() {
             int nroInscricao;
             double nota;
             char data[10];
-            data[10]='\0';
-            
+            data[10] = '\0';
+
             char * cidade;
             char * nomeEscola;
             //char tmp[TAMANHO_CAMPOS_VARIAVEIS];
-            
 
-            file = fopen(nomeArqWB, "rb");
+
+            FILE *file = fopen(nomeArqWB, "rb");
             fread(&arr, sizeof (arr), 1, file);
             fread(&encadeamento, sizeof (encadeamento), 1, file);
             fread(&nroInscricao, sizeof (nroInscricao), 1, file);
@@ -231,10 +236,6 @@ int main() {
 
             fclose(file);
             printf("Acabou");
-        } else {
-            printf("Falha no carregamento do arquivo.");
-        }
-
     }
 
 
