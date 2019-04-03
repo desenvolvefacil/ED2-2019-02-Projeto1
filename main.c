@@ -199,7 +199,11 @@ int main() {
             fclose(wbFile);
             fclose(file);
 
-
+            char cmd[] = "hexdump -C ";
+            system("clear");
+            system(strcat(cmd,nomeArqWB));
+            
+            exit(0);
             //char buff2[200];
             char arr;
             int encadeamento;
