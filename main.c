@@ -16,7 +16,6 @@
 #include <string.h>
 
 #define TAMANHO_REGISTRO 80
-#define TAMANHO_CAMPOS_VARIAVEIS 57
 
 /*
  * 
@@ -170,12 +169,6 @@ int main() {
                         }
 
 
-
-                        //escreve @ nos bytes restantes
-
-
-                        //int TotalBytes = 23;
-
                         arr = '@';
                         for (; totalBytes < TAMANHO_REGISTRO; totalBytes++) {
                             fwrite(&arr, sizeof (arr), 1, wbFile);
@@ -195,24 +188,27 @@ int main() {
 
             }
 
-            printf("%p", wbFile);
+            //printf("%p", wbFile);
             fclose(wbFile);
             fclose(file);
 
-            char cmd[] = "hexdump -C ";
-            system("clear");
-            system(strcat(cmd,nomeArqWB));
+            //char cmd[] = "hexdump -C ";
+            //system("clear");
+            //system(strcat(cmd,nomeArqWB));
             
-            exit(0);
+            //exit(0);
             //char buff2[200];
             char arr;
             int encadeamento;
             int nroInscricao;
             double nota;
             char data[10];
+            data[10]='\0';
+            
             char * cidade;
             char * nomeEscola;
-            char tmp[TAMANHO_CAMPOS_VARIAVEIS];
+            //char tmp[TAMANHO_CAMPOS_VARIAVEIS];
+            
 
             file = fopen(nomeArqWB, "rb");
             fread(&arr, sizeof (arr), 1, file);
@@ -220,13 +216,13 @@ int main() {
             fread(&nroInscricao, sizeof (nroInscricao), 1, file);
             fread(&nota, sizeof (nota), 1, file);
 
-            fread(&tmp, sizeof (data), 1, file);
-            strcpy(data, tmp);
+            fread(&data, sizeof (data), 1, file);
+            //strcpy(data, tmp);
 
-            fread(&tmp, TAMANHO_CAMPOS_VARIAVEIS, 1, file);
+            //fread(&tmp, TAMANHO_CAMPOS_VARIAVEIS, 1, file);
 
-            cidade = strtok(tmp, "\\0");
-            nomeEscola = strtok(NULL, "\\0");
+            //cidade = strtok(tmp, "\\0");
+            //nomeEscola = strtok(NULL, "\\0");
 
             printf("%d\n%lf\n%s\n", nroInscricao, nota, data);
             //printf("%s\n",tmp);
