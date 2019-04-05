@@ -85,7 +85,7 @@ int main() {
                     }
 
                     if (vez == 1) {
-                        
+
                         //recolhe os dados do cabecalho
 
                         //grava o status
@@ -143,7 +143,7 @@ int main() {
                             fwrite(&arr, sizeof (arr), 1, wbFile);
                         }
                         //break;
-                        
+
                     } else {
                         //grava o valor de removido
                         char arr = '-';
@@ -190,12 +190,12 @@ int main() {
 
                         char * cidade = strsep(&result, ",");
 
-                        int tamanhoCidade = strlen(cidade)+1;
+                        int tamanhoCidade = strlen(cidade) + 1;
                         if (tamanhoCidade > 1) {
 
                             //concatena com \0
-                            cidade = strncat(cidade,"\0",tamanhoCidade);
-                            
+                            cidade = strncat(cidade, "\0", tamanhoCidade);
+
                             //salva o tamanho do campo
                             fwrite(&tamanhoCidade, sizeof (tamanhoCidade), 1, wbFile);
 
@@ -213,13 +213,13 @@ int main() {
 
                         char * nomeEscola = strsep(&result, ",");
 
-                        int tamanhoEscola = strlen(nomeEscola)+1;
+                        int tamanhoEscola = strlen(nomeEscola) + 1;
 
                         if (tamanhoEscola > 1) {
-                            
+
                             //concatena com \0
-                            nomeEscola = strncat(nomeEscola,"\0",tamanhoEscola);
-                            
+                            nomeEscola = strncat(nomeEscola, "\0", tamanhoEscola);
+
                             //salva o tamanho do campo
                             fwrite(&tamanhoEscola, sizeof (tamanhoEscola), 1, wbFile);
 
@@ -263,9 +263,6 @@ int main() {
     } else if (opc == 2) {
         char * nomeArquivo = strtok(NULL, " ");
 
-        //char cmd[] = "hexdump -C ";
-        //system("clear");
-        //system(strcat(cmd,nomeArqWB));
 
         //exit(0);
         //char buff2[200];
@@ -285,37 +282,37 @@ int main() {
 
         if (fileWb != NULL) {
 
-            //move para segunda pagina
-            fseek(fileWb, TAMANHO_PAGINA, 0);
-
-            //while
-            fread(&arr, sizeof (arr), 1, fileWb);
-            fread(&encadeamento, sizeof (encadeamento), 1, fileWb);
-            fread(&nroInscricao, sizeof (nroInscricao), 1, fileWb);
-            fread(&nota, sizeof (nota), 1, fileWb);
-
-            fread(&data, sizeof (data), 1, fileWb);
+            int vez = 0;
+            int erro = 0;
             
-            //strcpy(data, tmp);
+            while (!feof(fileWb) && !erro) {
+                int pular = TAMANHO_PAGINA + vez * TAMANHO_REGISTRO;
+                
+                fseek(fileWb, pular , 0);
+                
+                //while
+                fread(&arr, sizeof (arr), 1, fileWb);
+                fread(&encadeamento, sizeof (encadeamento), 1, fileWb);
+                fread(&nroInscricao, sizeof (nroInscricao), 1, fileWb);
+                fread(&nota, sizeof (nota), 1, fileWb);
 
-            //fread(&tmp, TAMANHO_CAMPOS_VARIAVEIS, 1, file);
+                fread(&data, sizeof (data), 1, fileWb);
 
-            //cidade = strtok(tmp, "\\0");
-            //nomeEscola = strtok(NULL, "\\0");
+                printf("%d\n%lf\n%s\n", nroInscricao, nota, data);
 
-            printf("%d\n%lf\n%s\n", nroInscricao, nota, data);
-            //printf("%s\n",tmp);
+                vez++;
+                
+                /*if(vez==5000){
+                    int a = 10;
+                }*/
+            }
 
-            //size_t a = sizeof (cidade);
-            
-            
-            
             fclose(fileWb);
         } else {
-            printf("Registro inexistente.");
+            printf("Falha no processamento do arquivo.");
         }
 
-        
+
 
         //printf("Acabou");
     }
