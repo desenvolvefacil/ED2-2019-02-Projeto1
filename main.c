@@ -28,8 +28,8 @@ int main() {
     char TAG_CAMPO_ESCOLA = '5';
 
     //comando a ser lido
-    char comando[100] = "1 csv.csv";
-    //char comando[100] = "2 wbfile.bin";
+    //char comando[100] = "1 csv.csv";
+    char comando[100] = "2 wbfile.bin";
 
     //varicavel que guarda a opcao selecioanda
     int opc = 0;
@@ -85,6 +85,7 @@ int main() {
                     }
 
                     if (vez == 1) {
+                        
                         //recolhe os dados do cabecalho
 
                         //grava o status
@@ -101,50 +102,48 @@ int main() {
 
                         char desCampo1[55] = "numero de inscricao do participante do ENEM\0@@@@@@@@@@@";
                         fwrite(&desCampo1, sizeof (desCampo1), 1, wbFile);
-                        
+
                         //grava os dados do campo 2
                         char tagCampo2 = '2';
                         fwrite(&tagCampo2, sizeof (tagCampo2), 1, wbFile);
-                        
+
                         char desCampo2[55] = "nota do participante do ENEM na prova de matematica\0@@@";
                         fwrite(&desCampo2, sizeof (desCampo2), 1, wbFile);
-                        
+
                         //grava os dados do campo 3
                         char tagCampo3 = '3';
                         fwrite(&tagCampo3, sizeof (tagCampo3), 1, wbFile);
-                        
+
                         char desCampo3[55] = "data\0@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@";
                         fwrite(&desCampo3, sizeof (desCampo3), 1, wbFile);
-                        
-                        
+
+
                         //grava os dados do campo 4
                         char tagCampo4 = '4';
                         fwrite(&tagCampo4, sizeof (tagCampo4), 1, wbFile);
-                        
+
                         char desCampo4[55] = "cidade na qual o participante do ENEM mora\0@@@@@@@@@@@@";
                         fwrite(&desCampo4, sizeof (desCampo4), 1, wbFile);
-                        
-                        
+
+
                         //grava os dados do campo 4
                         char tagCampo5 = '5';
                         fwrite(&tagCampo5, sizeof (tagCampo5), 1, wbFile);
-                        
+
                         char desCampo5[55] = "nome da escola de ensino medio\0@@@@@@@@@@@@@@@@@@@@@@@@";
                         fwrite(&desCampo5, sizeof (desCampo5), 1, wbFile);
-                         
-                        
-                        
-                        
+
+
                         char arr = '@';
-                        
+
                         //for para completar com @ e deixar o cabeçalho em uma pagina só
-                        int i;    
-                        
+                        int i;
+
                         for (i = 285; i < TAMANHO_PAGINA; i++) {
                             fwrite(&arr, sizeof (arr), 1, wbFile);
                         }
-
-
+                        //break;
+                        
                     } else {
                         //grava o valor de removido
                         char arr = '-';
@@ -191,9 +190,12 @@ int main() {
 
                         char * cidade = strsep(&result, ",");
 
-                        int tamanhoCidade = strlen(cidade);
-                        if (tamanhoCidade > 0) {
+                        int tamanhoCidade = strlen(cidade)+1;
+                        if (tamanhoCidade > 1) {
 
+                            //concatena com \0
+                            cidade = strncat(cidade,"\0",tamanhoCidade);
+                            
                             //salva o tamanho do campo
                             fwrite(&tamanhoCidade, sizeof (tamanhoCidade), 1, wbFile);
 
@@ -211,9 +213,13 @@ int main() {
 
                         char * nomeEscola = strsep(&result, ",");
 
-                        int tamanhoEscola = strlen(nomeEscola);
+                        int tamanhoEscola = strlen(nomeEscola)+1;
 
-                        if (tamanhoEscola > 0) {
+                        if (tamanhoEscola > 1) {
+                            
+                            //concatena com \0
+                            nomeEscola = strncat(nomeEscola,"\0",tamanhoEscola);
+                            
                             //salva o tamanho do campo
                             fwrite(&tamanhoEscola, sizeof (tamanhoEscola), 1, wbFile);
 
@@ -231,10 +237,10 @@ int main() {
                             fwrite(&arr, sizeof (arr), 1, wbFile);
                         }
 
-
-                        /*if(vez==269){
+                        //break;
+                        /*if(vez==5){
                             int a = 10;
-                            break;
+                            //break;
                         }*/
                     }
                 }
@@ -275,27 +281,43 @@ int main() {
         //char tmp[TAMANHO_CAMPOS_VARIAVEIS];
 
 
-        FILE *file = fopen(nomeArqWB, "rb");
-        fread(&arr, sizeof (arr), 1, file);
-        fread(&encadeamento, sizeof (encadeamento), 1, file);
-        fread(&nroInscricao, sizeof (nroInscricao), 1, file);
-        fread(&nota, sizeof (nota), 1, file);
+        FILE *fileWb = fopen(nomeArqWB, "rb");
 
-        fread(&data, sizeof (data), 1, file);
-        //strcpy(data, tmp);
+        if (fileWb != NULL) {
 
-        //fread(&tmp, TAMANHO_CAMPOS_VARIAVEIS, 1, file);
+            //move para segunda pagina
+            fseek(fileWb, TAMANHO_PAGINA, 0);
 
-        //cidade = strtok(tmp, "\\0");
-        //nomeEscola = strtok(NULL, "\\0");
+            //while
+            fread(&arr, sizeof (arr), 1, fileWb);
+            fread(&encadeamento, sizeof (encadeamento), 1, fileWb);
+            fread(&nroInscricao, sizeof (nroInscricao), 1, fileWb);
+            fread(&nota, sizeof (nota), 1, fileWb);
 
-        printf("%d\n%lf\n%s\n", nroInscricao, nota, data);
-        //printf("%s\n",tmp);
+            fread(&data, sizeof (data), 1, fileWb);
+            
+            //strcpy(data, tmp);
 
-        //size_t a = sizeof (cidade);
+            //fread(&tmp, TAMANHO_CAMPOS_VARIAVEIS, 1, file);
 
-        fclose(file);
-        printf("Acabou");
+            //cidade = strtok(tmp, "\\0");
+            //nomeEscola = strtok(NULL, "\\0");
+
+            printf("%d\n%lf\n%s\n", nroInscricao, nota, data);
+            //printf("%s\n",tmp);
+
+            //size_t a = sizeof (cidade);
+            
+            
+            
+            fclose(fileWb);
+        } else {
+            printf("Registro inexistente.");
+        }
+
+        
+
+        //printf("Acabou");
     }
 
 
