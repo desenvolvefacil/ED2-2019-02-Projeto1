@@ -293,23 +293,21 @@ int main() {
             int vez = 0;
             int erro = 0;
 
-
+            uint pular = TAMANHO_PAGINA;
+            //int seek = fseek(fileWb, pular, SEEK_SET);
+            
             while (!feof(fileWb) && !erro) {
 
                 //pula pro proximo registro
-                uint pular = TAMANHO_PAGINA + vez * TAMANHO_REGISTRO;
+                pular = TAMANHO_PAGINA + vez * TAMANHO_REGISTRO;
                 int seek = fseek(fileWb, pular, SEEK_SET);
-                
-                if(feof(fileWb)){
-                    break;
-                }
 
 
                 //pega o atributo para verificar se o registro esta excluido logicamente
-                fread(&arr, sizeof (arr), 1, fileWb);
+                int read = fread(&arr, sizeof (arr), 1, fileWb);
 
                 //verifica se o registro não esta excluido e imprime em tela
-                if (arr == NAO_REMOVIDO) {
+                if (read && arr == NAO_REMOVIDO) {
                     fread(&encadeamento, sizeof (encadeamento), 1, fileWb);
 
                     fread(&nroInscricao, sizeof (nroInscricao), 1, fileWb);
@@ -334,8 +332,6 @@ int main() {
                 if (vez >= 4999) {
                     int a = 10;
                 }
-
-
             }
 
             fclose(fileWb);
