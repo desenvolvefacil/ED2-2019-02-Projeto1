@@ -17,7 +17,9 @@
 
 #define TAMANHO_PAGINA 16000
 #define TAMANHO_REGISTRO 80
-#define nomeArqWB "wbfile.bin"
+#define NOME_ARQUIVO_WB "wbfile.bin"
+#define REMOVIDO '*'
+#define NAO_REMOVIDO '-'
 
 /*
  * 
@@ -60,15 +62,15 @@ int main() {
 
 
             //cria o arquivo para salvar os dados
-            FILE * wbFile = fopen(nomeArqWB, "wb+");
+            FILE * wbFile = fopen(NOME_ARQUIVO_WB, "wb+");
 
-            char buff[80];
+            char buff[200];
 
             int vez = 1;
 
             while (!feof(file)) {
                 // Lê uma linha (inclusive com o '\n')
-                char * result = fgets(buff, 200, file); // o 'fgets' lê até 99 caracteres ou até o '\n'
+                char * result = fgets(buff, 200, file); // o 'fgets' lê até 199 caracteres ou até o '\n'
 
                 //verifica se e uma linha valida
                 if (result != NULL) {
@@ -146,7 +148,7 @@ int main() {
 
                     } else {
                         //grava o valor de removido
-                        char arr = '-';
+                        char arr = NAO_REMOVIDO;
                         fwrite(&arr, sizeof (arr), 1, wbFile);
 
                         //grava o encadeamento
@@ -256,10 +258,17 @@ int main() {
             fclose(file);
 
 
-        } else {
-            printf("Falha no carregamento do arquivo.");
-        }
+            //mostra o resultado em tela
+            FILE * fileWb = fopen(NOME_ARQUIVO_WB, "rb");
 
+            while (!feof(fileWb)) {
+
+                char c = fgetc(fileWb);
+
+                fwrite(&c, 1, 1, stdout);
+            }
+
+        }
     } else if (opc == 2) {
         char * nomeArquivo = strtok(NULL, " ");
 
@@ -277,34 +286,56 @@ int main() {
         char * nomeEscola;
         //char tmp[TAMANHO_CAMPOS_VARIAVEIS];
 
-
-        FILE *fileWb = fopen(nomeArqWB, "rb");
+        FILE *fileWb = fopen(NOME_ARQUIVO_WB, "rb");
 
         if (fileWb != NULL) {
 
             int vez = 0;
             int erro = 0;
-            
+
+
             while (!feof(fileWb) && !erro) {
-                int pular = TAMANHO_PAGINA + vez * TAMANHO_REGISTRO;
+
+                //pula pro proximo registro
+                uint pular = TAMANHO_PAGINA + vez * TAMANHO_REGISTRO;
+                int seek = fseek(fileWb, pular, SEEK_SET);
                 
-                fseek(fileWb, pular , 0);
-                
-                //while
+                if(feof(fileWb)){
+                    break;
+                }
+
+
+                //pega o atributo para verificar se o registro esta excluido logicamente
                 fread(&arr, sizeof (arr), 1, fileWb);
-                fread(&encadeamento, sizeof (encadeamento), 1, fileWb);
-                fread(&nroInscricao, sizeof (nroInscricao), 1, fileWb);
-                fread(&nota, sizeof (nota), 1, fileWb);
 
-                fread(&data, sizeof (data), 1, fileWb);
+                //verifica se o registro não esta excluido e imprime em tela
+                if (arr == NAO_REMOVIDO) {
+                    fread(&encadeamento, sizeof (encadeamento), 1, fileWb);
 
-                printf("%d\n%lf\n%s\n", nroInscricao, nota, data);
+                    fread(&nroInscricao, sizeof (nroInscricao), 1, fileWb);
+                    //imprime o número de inscrição
+                    printf("%d", nroInscricao);
 
+
+                    fread(&nota, sizeof (nota), 1, fileWb);
+                    //verifica se tem nora e imprime
+                    if (nota >= 0) {
+                        printf(" %.1lf", nota);
+                    }
+
+
+                    fread(&data, sizeof (data), 1, fileWb);
+
+                    //printf("%d %.1lf %s", nroInscricao, nota, data);
+                    printf("\n");
+                }
                 vez++;
-                
-                /*if(vez==5000){
+
+                if (vez >= 4999) {
                     int a = 10;
-                }*/
+                }
+
+
             }
 
             fclose(fileWb);
