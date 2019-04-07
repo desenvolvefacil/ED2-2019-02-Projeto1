@@ -394,6 +394,18 @@ int main() {
             }
 
             fclose(fileWb);
+            
+            
+            //Calcula qtas paginas foram acessadas
+            uint totalBytes = TAMANHO_REGISTRO * (vez-1);
+            
+            int totalPaginasAcessadas = totalBytes/TAMANHO_PAGINA;
+            
+            int diff = totalBytes%TAMANHO_PAGINA;
+            
+            totalPaginasAcessadas += (diff>0)?1:0;
+            
+            printf("Número de páginas de disco acessadas: %d",totalPaginasAcessadas);
         } else {
             printf("Falha no processamento do arquivo.");
         }
