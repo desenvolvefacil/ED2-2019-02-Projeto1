@@ -272,7 +272,6 @@ int main() {
     } else if (opc == 2) {
         char * nomeArquivo = strtok(NULL, " ");
 
-
         //exit(0);
         //char buff2[200];
         char arr;
@@ -295,7 +294,7 @@ int main() {
 
             uint pular = TAMANHO_PAGINA;
             //int seek = fseek(fileWb, pular, SEEK_SET);
-            
+
             while (!feof(fileWb) && !erro) {
 
                 //pula pro proximo registro
@@ -324,9 +323,14 @@ int main() {
 
                     fread(&data, sizeof (data), 1, fileWb);
 
-                    //printf("%d %.1lf %s", nroInscricao, nota, data);
+                    if (strlen(data) > 0) {
+                        printf(" %s",data);
+                    }
+                    
                     printf("\n");
                 }
+                
+                
                 vez++;
 
                 if (vez >= 4999) {
