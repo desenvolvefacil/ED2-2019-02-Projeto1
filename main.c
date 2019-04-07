@@ -160,6 +160,10 @@ int main() {
 
                         int nroInscricao = atoi(tmp);
 
+                        /*if (nroInscricao == 13185) {
+                            int a = 10;
+                        }*/
+
                         //grava no arquivo binario
                         fwrite(&nroInscricao, sizeof (nroInscricao), 1, wbFile);
 
@@ -251,6 +255,7 @@ int main() {
                 vez++;
 
 
+
             }
 
             //printf("%p", wbFile);
@@ -268,6 +273,9 @@ int main() {
                 fwrite(&c, 1, 1, stdout);
             }
 
+            fclose(fileWb);
+
+
         }
     } else if (opc == 2) {
         char * nomeArquivo = strtok(NULL, " ");
@@ -281,9 +289,10 @@ int main() {
         char data[10];
         data[10] = '\0';
 
-        char * cidade;
-        char * nomeEscola;
-        //char tmp[TAMANHO_CAMPOS_VARIAVEIS];
+        char * auxTexto;
+
+        int auxTamanho;
+        char auxTagCampo;
 
         FILE *fileWb = fopen(NOME_ARQUIVO_WB, "rb");
 
@@ -313,6 +322,9 @@ int main() {
                     //imprime o número de inscrição
                     printf("%d", nroInscricao);
 
+                    /*if (nroInscricao == 13405) {
+                        int a = 10;
+                    }*/
 
                     fread(&nota, sizeof (nota), 1, fileWb);
                     //verifica se tem nora e imprime
@@ -324,18 +336,61 @@ int main() {
                     fread(&data, sizeof (data), 1, fileWb);
 
                     if (strlen(data) > 0) {
-                        printf(" %s",data);
+                        printf(" %s", data);
                     }
-                    
+
+
+                    read = fread(&auxTamanho, sizeof (auxTamanho), 1, fileWb);
+
+                    if (read) {
+                        //le a tag
+                        fread(&auxTagCampo, sizeof (auxTagCampo), 1, fileWb);
+
+                        //verifica se é uma tagValida
+                        if (auxTagCampo == TAG_CAMPO_CIDADE || auxTagCampo == TAG_CAMPO_ESCOLA) {
+
+                            //le o texto
+                            auxTexto = calloc(auxTamanho, sizeof (char));
+                            fread(auxTexto, auxTamanho, 1, fileWb);
+
+
+                            printf(" %d %s", auxTamanho, auxTexto);
+
+                            //verifica se ainda tem o nome da escola
+                            if (auxTagCampo == TAG_CAMPO_CIDADE) {
+
+                                read = fread(&auxTamanho, sizeof (auxTamanho), 1, fileWb);
+
+                                if (read) {
+                                    //le a tag
+                                    fread(&auxTagCampo, sizeof (auxTagCampo), 1, fileWb);
+
+                                    //verifica se é uma tag validae
+                                    if (auxTagCampo == TAG_CAMPO_ESCOLA) {
+                                        auxTexto = calloc(auxTamanho, sizeof (char));
+                                        fread(auxTexto, auxTamanho, 1, fileWb);
+
+
+                                        printf(" %d %s", auxTamanho, auxTexto);
+                                    }
+
+                                }
+                            }
+
+                            free(auxTexto);
+                        }
+                    }
+
+
                     printf("\n");
                 }
-                
-                
+
+
                 vez++;
 
-                if (vez >= 4999) {
+                /*if (vez >= 4999) {
                     int a = 10;
-                }
+                }*/
             }
 
             fclose(fileWb);
