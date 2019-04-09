@@ -398,7 +398,8 @@ int main() {
 
                 char c = fgetc(fileWb);
 
-                fwrite(&c, 1, 1, stdout);
+                //fwrite(&c, 1, 1, stdout);
+                printf("%X",c);
             }
 
             fclose(fileWb);
