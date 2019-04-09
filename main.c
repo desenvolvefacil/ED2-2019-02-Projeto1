@@ -85,7 +85,7 @@ int lerLinha(FILE * fileWb, uint RRN, char * removido, int * nroInscricao, doubl
 
 
     //pega o atributo para verificar se o registro esta excluido logicamente
-    int read = fread(&removido, sizeof (char), 1, fileWb);
+    int read = fread(removido, sizeof (char), 1, fileWb);
 
     //verifica se o registro não esta excluido e imprime em tela
     if (read) {
@@ -149,8 +149,10 @@ int main() {
 
     //comando a ser lido
     //char comando[100] = "1 csv.csv";
-    char comando[100] = "2 wbfile.bin";
-    //char comando[100] = "3 arquivo.bin nroInscricao 332";
+    //char comando[100] = "2 wbfile.bin";
+    char comando[100] = "3 arquivo.bin nroInscricao 332";
+
+    //char comando[100] = "4 wbfile.bin 4999";
 
     //varicavel que guarda a opcao selecioanda
     int opc = 0;
@@ -415,12 +417,12 @@ int main() {
 
         if (fileWb != NULL) {
 
-            uint pular = TAMANHO_PAGINA;
+            //uint pular = TAMANHO_PAGINA;
             //int seek = fseek(fileWb, pular, SEEK_SET);
 
             while (!feof(fileWb)) {
                 char removido;
-                int encadeamento;
+                //int encadeamento;
                 int nroInscricao = 0;
                 double nota = -1;
                 char data[11] = "\0";
@@ -485,6 +487,63 @@ int main() {
 
 
         //printf("ok");
+    } else if (opc == 4) {
+        char * nomeArquivo = strtok(NULL, " ");
+
+        uint RRN = -1;
+        RRN = atoi(strtok(NULL, " "));
+
+        int erro = 0;
+        //printf("%u",RRN);
+
+
+        if (RRN >= 0) {
+
+            FILE *fileWb = fopen(NOME_ARQUIVO_WB, "rb");
+
+            if (fileWb != NULL) {
+
+                char removido;
+                //int encadeamento;
+                int nroInscricao = 0;
+                double nota = -1;
+                char data[11] = "\0";
+                //data[10] = '\0';
+
+                char cidade[100] = "\0"; // = NULL;
+                char nomeEscola[100] = "\0"; // = NULL;
+                
+                if (lerLinha(fileWb, RRN, &removido, &nroInscricao, &nota, data, cidade, nomeEscola)) {
+
+                    if (removido == NAO_REMOVIDO) {
+                        imprimirTela(nroInscricao, nota, data, cidade, nomeEscola);
+                        printf("Número de páginas de disco acessadas: 1");
+                    }else{
+                        printf("Registro indexistente.");
+                    }
+                }else{
+                    printf("Registro indexistente.");
+                }
+                
+                
+                
+            } else {
+                erro = 1;
+            }
+
+
+
+        } else {
+            erro = 1;
+        }
+
+        if (erro) {
+            printf("Falha no processamento do arquivo");
+        }
+
+
+    } else {
+        printf("Opcao Invalida");
     }
 
 
