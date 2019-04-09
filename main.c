@@ -20,6 +20,8 @@
 #define NOME_ARQUIVO_WB "wbfile.bin"
 #define REMOVIDO '*'
 #define NAO_REMOVIDO '-'
+#define TAG_CAMPO_CIDADE '4'
+#define TAG_CAMPO_ESCOLA '5'
 
 /**
  *  Funcao que imprime os dados em tela
@@ -56,6 +58,86 @@ void imprimirTela(int nroInscricao, double nota, char * data, char * cidade, cha
     printf("\n");
 }
 
+/**
+ * Lê uma linha do arquivo binario e retorna os dados da mesma
+ * @param fileWb
+ * @param RRN
+ * @param nroInscricao
+ * @param nota
+ * @param data
+ * @param cidade
+ * @param nomeEscola
+ * @return leu a linha
+ */
+int lerLinha(FILE * fileWb, uint RRN, int * nroInscricao, double * nota, char * data, char * cidade, char * nomeEscola) {
+
+    char removido;
+    int encadeamento;
+
+    //char * auxTexto;
+    int auxTamanho;
+    char auxTagCampo;
+
+    if(RRN==5000){
+        int a = 10;
+    }
+
+    //pula pro proximo registro
+    uint pular = TAMANHO_PAGINA + RRN * TAMANHO_REGISTRO;
+    int seek = fseek(fileWb, pular, SEEK_SET);
+
+
+    //pega o atributo para verificar se o registro esta excluido logicamente
+    int read = fread(&removido, sizeof (char), 1, fileWb);
+
+    //verifica se o registro não esta excluido e imprime em tela
+    if (read) {
+        fread(&encadeamento, sizeof (int), 1, fileWb);
+
+        fread(nroInscricao, sizeof (int), 1, fileWb);
+
+        fread(nota, sizeof (double), 1, fileWb);
+
+        fread(data, 10, 1, fileWb);
+
+
+        read = fread(&auxTamanho, sizeof (int), 1, fileWb);
+
+        if (read) {
+            //le a tag
+            fread(&auxTagCampo, sizeof (char), 1, fileWb);
+
+            //verifica se é uma tagValida
+            if (auxTagCampo == TAG_CAMPO_CIDADE) {
+
+                fread(cidade, auxTamanho, 1, fileWb);
+
+                read = fread(&auxTamanho, sizeof (int), 1, fileWb);
+
+                if (read) {
+                    //le a tag
+                    fread(&auxTagCampo, sizeof (char), 1, fileWb);
+
+                    //verifica se é uma tag validae
+                    if (auxTagCampo == TAG_CAMPO_ESCOLA) {
+                        //nomeEscola = calloc(auxTamanho, sizeof (char));
+                        fread(nomeEscola, auxTamanho, 1, fileWb);
+
+                        int a = 10;
+                    }
+
+                }
+
+            } else if (auxTagCampo == TAG_CAMPO_ESCOLA) {
+                //nomeEscola = calloc(auxTamanho, sizeof (char));
+                fread(nomeEscola, auxTamanho, 1, fileWb);
+            }
+        }
+    }
+
+    return * nroInscricao;
+}
+
 /*
  * Função Principal
  */
@@ -66,8 +148,7 @@ int main() {
     
     char * ret = strstr(aaa,bbb);*/
 
-    char TAG_CAMPO_CIDADE = '4';
-    char TAG_CAMPO_ESCOLA = '5';
+
 
     //comando a ser lido
     //char comando[100] = "1 csv.csv";
@@ -248,7 +329,8 @@ int main() {
                             fwrite(&tamanhoCidade, sizeof (tamanhoCidade), 1, wbFile);
 
                             //salva a tag do campo
-                            fwrite(&TAG_CAMPO_CIDADE, sizeof (char), 1, wbFile);
+                            char tagCampoCidade = TAG_CAMPO_CIDADE;
+                            fwrite(&tagCampoCidade, sizeof (char), 1, wbFile);
 
                             fwrite(cidade, tamanhoCidade, 1, wbFile);
 
@@ -276,7 +358,8 @@ int main() {
                             fwrite(&tamanhoEscola, sizeof (tamanhoEscola), 1, wbFile);
 
                             //salva a tag do campo
-                            fwrite(&TAG_CAMPO_ESCOLA, sizeof (char), 1, wbFile);
+                            char tagCampoEscola = TAG_CAMPO_ESCOLA;
+                            fwrite(&tagCampoEscola, sizeof (char), 1, wbFile);
 
                             fwrite(nomeEscola, tamanhoEscola, 1, wbFile);
 
@@ -329,128 +412,43 @@ int main() {
         //exit(0);
         //char buff2[200];
 
+        uint vez = 0;
 
         FILE *fileWb = fopen(NOME_ARQUIVO_WB, "rb");
 
         if (fileWb != NULL) {
 
-            int vez = 0;
-            int erro = 0;
-
             uint pular = TAMANHO_PAGINA;
             //int seek = fseek(fileWb, pular, SEEK_SET);
 
-            while (!feof(fileWb) && !erro) {
-
+            while (!feof(fileWb)) {
                 char removido;
                 int encadeamento;
-                int nroInscricao;
+                int nroInscricao = 0;
                 double nota = -1;
-                char data[10];
-                data[10] = '\0';
-                char * cidade = NULL;
-                char * nomeEscola = NULL;
+                char data[11] = "\0";
+                //data[10] = '\0';
+
+                char cidade[100] = "\0"; // = NULL;
+                char nomeEscola[100] = "\0"; // = NULL;
 
 
-                //char * auxTexto;
-                int auxTamanho;
-                char auxTagCampo;
-
-
-
-                //pula pro proximo registro
-                pular = TAMANHO_PAGINA + vez * TAMANHO_REGISTRO;
-                int seek = fseek(fileWb, pular, SEEK_SET);
-
-
-                //pega o atributo para verificar se o registro esta excluido logicamente
-                int read = fread(&removido, sizeof (removido), 1, fileWb);
-
-                //verifica se o registro não esta excluido e imprime em tela
-                if (read && removido == NAO_REMOVIDO) {
-                    fread(&encadeamento, sizeof (encadeamento), 1, fileWb);
-
-                    fread(&nroInscricao, sizeof (nroInscricao), 1, fileWb);
-                    /*
-                    //imprime o número de inscrição
-                    printf("%d", nroInscricao);
-                     */
-                    /*if (nroInscricao == 13405) {
-                        int a = 10;
-                    }*/
-
-                    fread(&nota, sizeof (nota), 1, fileWb);
-                    /*
-                    //verifica se tem nora e imprime
-                    if (nota >= 0) {
-                        printf(" %.1lf", nota);
-                    }*/
-
-
-                    fread(&data, sizeof (data), 1, fileWb);
-
-                    /*
-                    if (strlen(data) > 0) {
-                        printf(" %s", data);
-                    }
-                     */
-
-
-                    read = fread(&auxTamanho, sizeof (auxTamanho), 1, fileWb);
-
-                    if (read) {
-                        //le a tag
-                        fread(&auxTagCampo, sizeof (auxTagCampo), 1, fileWb);
-
-                        //verifica se é uma tagValida
-                        if (auxTagCampo == TAG_CAMPO_CIDADE) {
-
-                            //le o texto
-                            //auxTexto = malloc(auxTamanho * sizeof (char));
-                            cidade = calloc(auxTamanho, sizeof (char));
-                            fread(cidade, auxTamanho, 1, fileWb);
-
-                            //verifica se ainda tem o nome da escola
-                            if (auxTagCampo == TAG_CAMPO_CIDADE) {
-
-                                read = fread(&auxTamanho, sizeof (auxTamanho), 1, fileWb);
-
-                                if (read) {
-                                    //le a tag
-                                    fread(&auxTagCampo, sizeof (auxTagCampo), 1, fileWb);
-
-                                    //verifica se é uma tag validae
-                                    if (auxTagCampo == TAG_CAMPO_ESCOLA) {
-                                        nomeEscola = calloc(auxTamanho, sizeof (char));
-                                        fread(nomeEscola, auxTamanho, 1, fileWb);
-
-                                    }
-
-                                }
-                            }
-
-                            
-                        } else if (auxTagCampo == TAG_CAMPO_ESCOLA) {
-                            nomeEscola = calloc(auxTamanho, sizeof (char));
-                            fread(nomeEscola, auxTamanho, 1, fileWb);
-
-
-                            
-                        }
-                    }
-
+                if (lerLinha(fileWb, vez, &nroInscricao, &nota, data, cidade, nomeEscola)) {
                     imprimirTela(nroInscricao, nota, data, cidade, nomeEscola);
-
-                    //printf("\n");
                 }
-
+                //exit(0);
+                //printf("\n");
 
                 vez++;
-
-                /*if (vez >= 4999) {
-                    int a = 10;
-                }*/
             }
+
+
+
+
+            /*if (vez >= 4999) {
+                int a = 10;
+            }*/
+
 
             fclose(fileWb);
 
@@ -492,4 +490,5 @@ int main() {
 
     return (EXIT_SUCCESS);
 }
+
 
