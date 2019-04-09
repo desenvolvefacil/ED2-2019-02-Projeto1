@@ -62,6 +62,7 @@ void imprimirTela(int nroInscricao, double nota, char * data, char * cidade, cha
  * Lê uma linha do arquivo binario e retorna os dados da mesma
  * @param fileWb
  * @param RRN
+ * @param removido
  * @param nroInscricao
  * @param nota
  * @param data
@@ -69,18 +70,14 @@ void imprimirTela(int nroInscricao, double nota, char * data, char * cidade, cha
  * @param nomeEscola
  * @return leu a linha
  */
-int lerLinha(FILE * fileWb, uint RRN, int * nroInscricao, double * nota, char * data, char * cidade, char * nomeEscola) {
+int lerLinha(FILE * fileWb, uint RRN, char * removido, int * nroInscricao, double * nota, char * data, char * cidade, char * nomeEscola) {
 
-    char removido;
     int encadeamento;
 
     //char * auxTexto;
     int auxTamanho;
     char auxTagCampo;
 
-    if(RRN==5000){
-        int a = 10;
-    }
 
     //pula pro proximo registro
     uint pular = TAMANHO_PAGINA + RRN * TAMANHO_REGISTRO;
@@ -433,8 +430,11 @@ int main() {
                 char nomeEscola[100] = "\0"; // = NULL;
 
 
-                if (lerLinha(fileWb, vez, &nroInscricao, &nota, data, cidade, nomeEscola)) {
-                    imprimirTela(nroInscricao, nota, data, cidade, nomeEscola);
+                if (lerLinha(fileWb, vez, &removido, &nroInscricao, &nota, data, cidade, nomeEscola)) {
+
+                    if (removido == NAO_REMOVIDO) {
+                        imprimirTela(nroInscricao, nota, data, cidade, nomeEscola);
+                    }
                 }
                 //exit(0);
                 //printf("\n");
