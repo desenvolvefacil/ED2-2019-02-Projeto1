@@ -345,11 +345,11 @@ int main() {
                 char removido;
                 int encadeamento;
                 int nroInscricao;
-                double nota;
+                double nota = -1;
                 char data[10];
                 data[10] = '\0';
-                char * cidade;
-                char * nomeEscola;
+                char * cidade = NULL;
+                char * nomeEscola = NULL;
 
 
                 //char * auxTexto;
