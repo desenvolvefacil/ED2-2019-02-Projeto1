@@ -17,11 +17,27 @@
 
 #define TAMANHO_PAGINA 16000
 #define TAMANHO_REGISTRO 80
-#define NOME_ARQUIVO_WB "wbfile.bin"
+#define NOME_ARQUIVO_WB_SAVE "wbfile.bin"
 #define REMOVIDO '*'
 #define NAO_REMOVIDO '-'
 #define TAG_CAMPO_CIDADE '4'
 #define TAG_CAMPO_ESCOLA '5'
+
+/*
+//comando a ser lido
+1 csv.csv
+2 wbfile.bin
+3 wbfile.bin nroInscricao 332
+3 wbfile.bin nota 561.3
+3 wbfile.bin data 23/01/2017
+3 wbfile.bin cidade Recife
+3 wbfile.bin cidade Joao Pessoa    
+3 wbfile.bin nomeEscola FRANCISCO RIBEIRO CARRI
+3 wbfile.bin nomeEscola FRANCISCO RIBEIRO CARRI
+4 wbfile.bin 4999
+ */
+
+
 
 /**
  *  Funcao que imprime os dados em tela
@@ -140,25 +156,17 @@ int lerLinha(FILE * fileWb, uint RRN, char * removido, int * nroInscricao, doubl
  */
 int main() {
 
-    /*char aaa[] = "abcab";
-    char bbb[] = "bc";
-    
-    char * ret = strstr(aaa,bbb);*/
-
-
-
     //comando a ser lido
-    //char comando[100] = "1 csv.csv";
-    //char comando[100] = "2 wbfile.bin";
-    char comando[100] = "3 arquivo.bin nroInscricao 332";
-
-    //char comando[100] = "4 wbfile.bin 4999";
-
+    char * comando = calloc(100,sizeof(char));
+    //strcpy(comando,"3 wbfile.bin nomeEscola FRANCISCO RIBEIRO CARRI\0");
+    
     //varicavel que guarda a opcao selecioanda
     int opc = 0;
 
+
+    
     //leitura do comando a ser executado
-    //fgets(comando, 100, stdin);
+    fgets(comando, 100, stdin);
 
     //pega o tamnho do comando lido
     size_t ln = strlen(comando) - 1;
@@ -168,22 +176,23 @@ int main() {
         comando[ln] = '\0';
     }
 
+
     //verifica o inteiro digitado no comando
-    opc = atoi(strtok(comando, " "));
+    opc = atoi(strsep(&comando, " "));
 
     // exemplo de comando
     // 1 arquivo.csv 
     if (opc == 1) {
 
-        char * nomeArquivo = strtok(NULL, " ");
+        char * nomeArquivo = strsep(&comando, "\0");
 
-        FILE * file = fopen(nomeArquivo, "r+");
+        FILE * file = fopen(nomeArquivo, "r");
 
         if (file) {
 
 
             //cria o arquivo para salvar os dados
-            FILE * wbFile = fopen(NOME_ARQUIVO_WB, "wb+");
+            FILE * wbFile = fopen(NOME_ARQUIVO_WB_SAVE, "wb");
 
             char buff[200];
 
@@ -392,6 +401,7 @@ int main() {
 
 
             //mostra o resultado em tela
+            /*
             FILE * fileWb = fopen(NOME_ARQUIVO_WB, "rb");
 
             while (!feof(fileWb)) {
@@ -403,18 +413,19 @@ int main() {
             }
 
             fclose(fileWb);
+             */
 
 
         }
     } else if (opc == 2) {
-        char * nomeArquivo = strtok(NULL, " ");
+        char * nomeArquivo = strsep(&comando, "\0");
 
         //exit(0);
         //char buff2[200];
 
         uint vez = 0;
 
-        FILE *fileWb = fopen(NOME_ARQUIVO_WB, "rb");
+        FILE *fileWb = fopen(nomeArquivo, "rb");
 
         if (fileWb != NULL) {
 
@@ -476,7 +487,20 @@ int main() {
     } else if (opc == 3) {
         //3 arquivo.bin NomeDoCampo valor
         //3 arquivo.bin nroInscricao 332
+        char * nomeArquivo = strsep(&comando, " ");
 
+        char * parametroNome = strsep(&comando, " ");
+
+        char * parametroValor = strsep(&comando, "\0");
+
+        //tenta pegar o resto do parametro caso haja
+        //printf("%s\n",comando);
+        //char * aux = NULL;
+        
+
+        //printf("%s",parametroValor);
+
+        //nome dos campos para comparacao
         char NRO_INSCRICAO[] = "nroInscricao";
         char NOTA[] = "nota";
         char DATA[] = "data";
@@ -484,15 +508,123 @@ int main() {
         char NOME_ESCOLA[] = "nomeEscola";
 
 
-        //uhuh
+        int erro = 0;
+        int imprimiu = 0;
+
+        //verifica se é um parametro válido
+        if (strcmp(parametroNome, NRO_INSCRICAO) == 0 || strcmp(parametroNome, NOTA) == 0 || strcmp(parametroNome, DATA) == 0 || strcmp(parametroNome, CIDADE) == 0 || strcmp(parametroNome, NOME_ESCOLA) == 0) {
+            //printf("ok");
+
+            uint vez = 0;
+
+            FILE *fileWb = fopen(nomeArquivo, "rb");
+
+            if (fileWb != NULL) {
+
+                while (!feof(fileWb)) {
+                    char removido;
+                    //int encadeamento;
+                    int nroInscricao = 0;
+                    double nota = -1;
+                    char data[11] = "\0";
+                    //data[10] = '\0';
+
+                    char cidade[100] = "\0"; // = NULL;
+                    char nomeEscola[100] = "\0"; // = NULL;
+
+
+                    if (lerLinha(fileWb, vez, &removido, &nroInscricao, &nota, data, cidade, nomeEscola)) {
+
+                        if (removido == NAO_REMOVIDO) {
+
+                            int imprimir = 0;
+
+                            //verificar se o valor corresponde ao parametro
+                            if (strcmp(parametroNome, NRO_INSCRICAO) == 0) {
+                                int nroAux = atoi(parametroValor);
+
+                                if (nroInscricao == nroAux) {
+                                    imprimir = 1;
+                                }
+                            }
+
+                            if (strcmp(parametroNome, NOTA) == 0) {
+                                double notaAux = strtod(parametroValor, NULL);
+
+                                if (notaAux >= 0 && notaAux == nota) {
+                                    imprimir = 1;
+                                }
+                            }
+
+                            if (strcmp(parametroNome, DATA) == 0) {
+                                if (strcmp(parametroValor, data) == 0) {
+                                    imprimir = 1;
+                                }
+                            }
+
+                            if (strcmp(parametroNome, CIDADE) == 0) {
+                                if (strcmp(parametroValor, cidade) == 0) {
+                                    imprimir = 1;
+                                }
+                            }
+
+                            if (strcmp(parametroNome, NOME_ESCOLA) == 0) {
+                                if (strcmp(parametroValor, nomeEscola) == 0) {
+                                    imprimir = 1;
+                                }
+                            }
+
+
+                            //se foi encontrado valor correspondente, então imprime em tela
+                            if (imprimir) {
+                                imprimirTela(nroInscricao, nota, data, cidade, nomeEscola);
+                                imprimiu = 1;
+                            }
+                        }
+                    }
+                    //exit(0);
+                    //printf("\n");
+
+                    vez++;
+                }
+
+
+                if (imprimiu) {
+                    //Calcula qtas paginas foram acessadas
+                    uint totalBytes = TAMANHO_REGISTRO * (vez - 1);
+
+                    int totalPaginasAcessadas = totalBytes / TAMANHO_PAGINA;
+
+                    int diff = totalBytes % TAMANHO_PAGINA;
+
+                    totalPaginasAcessadas += (diff > 0) ? 1 : 0;
+
+                    printf("Número de páginas de disco acessadas: %d", totalPaginasAcessadas);
+                } else {
+                    printf("Registro indexistente.");
+                }
+
+
+            } else {
+                erro == 1;
+            }
+
+        } else {
+            erro = 1;
+        }
+
+
+        if (erro) {
+            printf("Falha no processamento do arquivo");
+        }
 
 
         //printf("ok");
     } else if (opc == 4) {
-        char * nomeArquivo = strtok(NULL, " ");
+        char * nomeArquivo = strsep(&comando, " ");
 
         uint RRN = -1;
-        RRN = atoi(strtok(NULL, " "));
+        RRN = atoi(strsep(&comando, "\0"));
 
         int erro = 0;
         //printf("%u",RRN);
@@ -500,7 +632,7 @@ int main() {
 
         if (RRN >= 0) {
 
-            FILE *fileWb = fopen(NOME_ARQUIVO_WB, "rb");
+            FILE *fileWb = fopen(nomeArquivo, "rb");
 
             if (fileWb != NULL) {
 
@@ -513,21 +645,21 @@ int main() {
 
                 char cidade[100] = "\0"; // = NULL;
                 char nomeEscola[100] = "\0"; // = NULL;
-                
+
                 if (lerLinha(fileWb, RRN, &removido, &nroInscricao, &nota, data, cidade, nomeEscola)) {
 
                     if (removido == NAO_REMOVIDO) {
                         imprimirTela(nroInscricao, nota, data, cidade, nomeEscola);
                         printf("Número de páginas de disco acessadas: 1");
-                    }else{
+                    } else {
                         printf("Registro indexistente.");
                     }
-                }else{
+                } else {
                     printf("Registro indexistente.");
                 }
-                
-                
-                
+
+
+
             } else {
                 erro = 1;
             }
