@@ -37,8 +37,6 @@
 4 wbfile.bin 4999
  */
 
-
-
 /**
  *  Funcao que imprime os dados em tela
  * @param nroInscricao
@@ -86,7 +84,7 @@ void imprimirTela(int nroInscricao, double nota, char * data, char * cidade, cha
  * @param nomeEscola
  * @return leu a linha
  */
-int lerLinha(FILE * fileWb, uint RRN, char * removido, int * nroInscricao, double * nota, char * data, char * cidade, char * nomeEscola) {
+int lerLinha(FILE * fileWb, long RRN, char * removido, int * nroInscricao, double * nota, char * data, char * cidade, char * nomeEscola) {
 
     int encadeamento;
 
@@ -94,10 +92,16 @@ int lerLinha(FILE * fileWb, uint RRN, char * removido, int * nroInscricao, doubl
     int auxTamanho;
     char auxTagCampo;
 
+    //posicao do proximo registro
+    long pular = TAMANHO_PAGINA + RRN * TAMANHO_REGISTRO;
 
-    //pula pro proximo registro
-    uint pular = TAMANHO_PAGINA + RRN * TAMANHO_REGISTRO;
-    int seek = fseek(fileWb, pular, SEEK_SET);
+    //posicao atual do ponteiro no arquivo
+    long posAtual = ftell(fileWb);
+
+    //ajusta o tamanho do salto tirando o valor atual do ponteiro do registro a ser obtido
+    pular -= posAtual;
+
+    int seek = fseek(fileWb, pular, SEEK_CUR);
 
 
     //pega o atributo para verificar se o registro esta excluido logicamente
@@ -157,14 +161,14 @@ int lerLinha(FILE * fileWb, uint RRN, char * removido, int * nroInscricao, doubl
 int main() {
 
     //comando a ser lido
-    char * comando = calloc(100,sizeof(char));
+    char * comando = calloc(100, sizeof (char));
     //strcpy(comando,"3 wbfile.bin nomeEscola FRANCISCO RIBEIRO CARRI\0");
-    
+
     //varicavel que guarda a opcao selecioanda
     int opc = 0;
 
 
-    
+
     //leitura do comando a ser executado
     fgets(comando, 100, stdin);
 
@@ -423,14 +427,11 @@ int main() {
         //exit(0);
         //char buff2[200];
 
-        uint vez = 0;
+        long vez = 0;
 
         FILE *fileWb = fopen(nomeArquivo, "rb");
 
         if (fileWb != NULL) {
-
-            //uint pular = TAMANHO_PAGINA;
-            //int seek = fseek(fileWb, pular, SEEK_SET);
 
             while (!feof(fileWb)) {
                 char removido;
@@ -468,7 +469,7 @@ int main() {
 
 
             //Calcula qtas paginas foram acessadas
-            uint totalBytes = TAMANHO_REGISTRO * (vez - 1);
+            long totalBytes = TAMANHO_REGISTRO * (vez - 1);
 
             int totalPaginasAcessadas = totalBytes / TAMANHO_PAGINA;
 
@@ -496,7 +497,7 @@ int main() {
         //tenta pegar o resto do parametro caso haja
         //printf("%s\n",comando);
         //char * aux = NULL;
-        
+
 
         //printf("%s",parametroValor);
 
@@ -515,7 +516,7 @@ int main() {
         if (strcmp(parametroNome, NRO_INSCRICAO) == 0 || strcmp(parametroNome, NOTA) == 0 || strcmp(parametroNome, DATA) == 0 || strcmp(parametroNome, CIDADE) == 0 || strcmp(parametroNome, NOME_ESCOLA) == 0) {
             //printf("ok");
 
-            uint vez = 0;
+            long vez = 0;
 
             FILE *fileWb = fopen(nomeArquivo, "rb");
 
@@ -537,14 +538,17 @@ int main() {
 
                         if (removido == NAO_REMOVIDO) {
 
-                            int imprimir = 0;
 
                             //verificar se o valor corresponde ao parametro
                             if (strcmp(parametroNome, NRO_INSCRICAO) == 0) {
                                 int nroAux = atoi(parametroValor);
 
                                 if (nroInscricao == nroAux) {
-                                    imprimir = 1;
+                                    imprimirTela(nroInscricao, nota, data, cidade, nomeEscola);
+                                    imprimiu = 1;
+                                    vez++;
+                                    vez++;
+                                    break;
                                 }
                             }
 
@@ -552,34 +556,32 @@ int main() {
                                 double notaAux = strtod(parametroValor, NULL);
 
                                 if (notaAux >= 0 && notaAux == nota) {
-                                    imprimir = 1;
+                                    imprimirTela(nroInscricao, nota, data, cidade, nomeEscola);
+                                    imprimiu = 1;
                                 }
                             }
 
                             if (strcmp(parametroNome, DATA) == 0) {
                                 if (strcmp(parametroValor, data) == 0) {
-                                    imprimir = 1;
+                                    imprimirTela(nroInscricao, nota, data, cidade, nomeEscola);
+                                    imprimiu = 1;
                                 }
                             }
 
                             if (strcmp(parametroNome, CIDADE) == 0) {
                                 if (strcmp(parametroValor, cidade) == 0) {
-                                    imprimir = 1;
+                                    imprimirTela(nroInscricao, nota, data, cidade, nomeEscola);
+                                    imprimiu = 1;
                                 }
                             }
 
                             if (strcmp(parametroNome, NOME_ESCOLA) == 0) {
                                 if (strcmp(parametroValor, nomeEscola) == 0) {
-                                    imprimir = 1;
+                                    imprimirTela(nroInscricao, nota, data, cidade, nomeEscola);
+                                    imprimiu = 1;
                                 }
                             }
-
-
-                            //se foi encontrado valor correspondente, então imprime em tela
-                            if (imprimir) {
-                                imprimirTela(nroInscricao, nota, data, cidade, nomeEscola);
-                                imprimiu = 1;
-                            }
+   
                         }
                     }
                     //exit(0);
@@ -591,7 +593,7 @@ int main() {
 
                 if (imprimiu) {
                     //Calcula qtas paginas foram acessadas
-                    uint totalBytes = TAMANHO_REGISTRO * (vez - 1);
+                    long totalBytes = TAMANHO_REGISTRO * (vez -1);
 
                     int totalPaginasAcessadas = totalBytes / TAMANHO_PAGINA;
 
@@ -623,7 +625,7 @@ int main() {
     } else if (opc == 4) {
         char * nomeArquivo = strsep(&comando, " ");
 
-        uint RRN = -1;
+        long RRN = -1;
         RRN = atoi(strsep(&comando, "\0"));
 
         int erro = 0;
