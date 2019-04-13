@@ -17,7 +17,7 @@
 
 #define TAMANHO_PAGINA 16000
 #define TAMANHO_REGISTRO 80
-#define NOME_ARQUIVO_WB_SAVE "wbfile.bin"
+#define NOME_ARQUIVO_WB_SAVE "arquivoTrab1si.bin"
 #define REMOVIDO '*'
 #define NAO_REMOVIDO '-'
 #define TAG_CAMPO_CIDADE '4'
@@ -26,15 +26,15 @@
 /*
 //comando a ser lido
 1 csv.csv
-2 wbfile.bin
-3 wbfile.bin nroInscricao 332
-3 wbfile.bin nota 561.3
-3 wbfile.bin data 23/01/2017
-3 wbfile.bin cidade Recife
-3 wbfile.bin cidade Joao Pessoa    
-3 wbfile.bin nomeEscola FRANCISCO RIBEIRO CARRI
-3 wbfile.bin nomeEscola FRANCISCO RIBEIRO CARRI
-4 wbfile.bin 4999
+2 arquivoTrab1si.bin
+3 arquivoTrab1si.bin nroInscricao 332
+3 arquivoTrab1si.bin nota 561.3
+3 arquivoTrab1si.bin data 23/01/2017
+3 arquivoTrab1si.bin cidade Recife
+3 arquivoTrab1si.bin cidade Joao Pessoa    
+3 arquivoTrab1si.bin nomeEscola FRANCISCO RIBEIRO CARRI
+3 arquivoTrab1si.bin nomeEscola FRANCISCO RIBEIRO CARRI
+4 arquivoTrab1si.bin 4999
  */
 
 /**
@@ -152,6 +152,7 @@ int lerLinha(FILE * fileWb, long RRN, char * removido, int * nroInscricao, doubl
         }
     }
 
+
     return * nroInscricao;
 }
 
@@ -162,7 +163,7 @@ int main() {
 
     //comando a ser lido
     char * comando = calloc(100, sizeof (char));
-    //strcpy(comando,"3 wbfile.bin nomeEscola FRANCISCO RIBEIRO CARRI\0");
+    //strcpy(comando,"3 arquivoTrab1si.bin nomeEscola FRANCISCO RIBEIRO CARRI\0");
 
     //varicavel que guarda a opcao selecioanda
     int opc = 0;
@@ -309,11 +310,9 @@ int main() {
                         if (strlen(tmp)) {
                             nota = strtod(tmp, NULL);
                         }
+
                         //grava no arquivo binario
                         fwrite(&nota, sizeof (nota), 1, wbFile);
-
-
-                        //printf("%lf\n",nota);
 
                         tmp = strsep(&result, ",");
                         char data[10] = "\0@@@@@@@@@";
@@ -324,9 +323,7 @@ int main() {
 
                         fwrite(&data, sizeof (data), 1, wbFile);
 
-
                         size_t totalBytes = 27;
-
 
                         char * cidade = strsep(&result, ",");
 
@@ -349,15 +346,7 @@ int main() {
                             totalBytes += 5 + tamanhoCidade;
                         }
 
-                        /*size_t ok = sizeof(cidade);
-                        ok = strlen(cidade);
-                        break;*/
-
                         char * nomeEscola = strsep(&result, ",");
-
-                        /*int tamanhoEscola = strlen(nomeEscola) + 1;
-
-                        if (tamanhoEscola > 1) {*/
 
                         int tamanhoEscola = strlen(nomeEscola);
 
@@ -378,17 +367,10 @@ int main() {
                             totalBytes += 5 + tamanhoEscola;
                         }
 
-
                         char arroba = '@';
                         for (; totalBytes < TAMANHO_REGISTRO; totalBytes++) {
                             fwrite(&arroba, sizeof (arroba), 1, wbFile);
                         }
-
-                        //break;
-                        /*if(vez==5){
-                            int a = 10;
-                            //break;
-                        }*/
                     }
                 }
 
@@ -399,27 +381,20 @@ int main() {
 
             }
 
+            //atualiza o status pra 0
+            //posiciona o cursor pro inicio do arquivo
+            fseek(wbFile, 0, SEEK_SET);
+            char status = '0';
+            fwrite(&status, sizeof (char), 1, wbFile);
+
             //printf("%p", wbFile);
             fclose(wbFile);
             fclose(file);
 
+            printf(NOME_ARQUIVO_WB_SAVE);
 
-            //mostra o resultado em tela
-            /*
-            FILE * fileWb = fopen(NOME_ARQUIVO_WB, "rb");
-
-            while (!feof(fileWb)) {
-
-                char c = fgetc(fileWb);
-
-                //fwrite(&c, 1, 1, stdout);
-                printf("%X",c);
-            }
-
-            fclose(fileWb);
-             */
-
-
+        } else {
+            printf("Falha no carregamento do arquivo.");
         }
     } else if (opc == 2) {
         char * nomeArquivo = strsep(&comando, "\0");
@@ -469,7 +444,7 @@ int main() {
 
 
             //Calcula qtas paginas foram acessadas
-            long totalBytes = TAMANHO_REGISTRO * (vez - 1);
+            long totalBytes = TAMANHO_REGISTRO * (vez);
 
             int totalPaginasAcessadas = totalBytes / TAMANHO_PAGINA;
 
@@ -546,8 +521,7 @@ int main() {
                                 if (nroInscricao == nroAux) {
                                     imprimirTela(nroInscricao, nota, data, cidade, nomeEscola);
                                     imprimiu = 1;
-                                    vez++;
-                                    vez++;
+                                    vez += 2;
                                     break;
                                 }
                             }
@@ -581,7 +555,7 @@ int main() {
                                     imprimiu = 1;
                                 }
                             }
-   
+
                         }
                     }
                     //exit(0);
@@ -593,7 +567,8 @@ int main() {
 
                 if (imprimiu) {
                     //Calcula qtas paginas foram acessadas
-                    long totalBytes = TAMANHO_REGISTRO * (vez -1);
+                    //soma uma pagina para contar o cabecallho
+                    long totalBytes = TAMANHO_REGISTRO * (vez - 1) + TAMANHO_PAGINA;
 
                     int totalPaginasAcessadas = totalBytes / TAMANHO_PAGINA;
 
@@ -603,7 +578,7 @@ int main() {
 
                     printf("Número de páginas de disco acessadas: %d", totalPaginasAcessadas);
                 } else {
-                    printf("Registro indexistente.");
+                    printf("Registro inexistente.");
                 }
 
 
@@ -652,12 +627,13 @@ int main() {
 
                     if (removido == NAO_REMOVIDO) {
                         imprimirTela(nroInscricao, nota, data, cidade, nomeEscola);
-                        printf("Número de páginas de disco acessadas: 1");
+                        //2 cabcalho + seek direto pro registro
+                        printf("Número de páginas de disco acessadas: 2");
                     } else {
-                        printf("Registro indexistente.");
+                        printf("Registro inexistente.");
                     }
                 } else {
-                    printf("Registro indexistente.");
+                    printf("Registro inexistente.");
                 }
 
 
@@ -682,7 +658,5 @@ int main() {
     }
 
 
-    return (EXIT_SUCCESS);
+    return (0);
 }
-
-
