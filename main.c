@@ -124,6 +124,8 @@ int lerLinha(FILE * fileWb, long RRN, char * removido, int * nroInscricao, doubl
             //le a tag
             fread(&auxTagCampo, sizeof (char), 1, fileWb);
 
+            auxTamanho--;
+            
             //verifica se é uma tagValida
             if (auxTagCampo == TAG_CAMPO_CIDADE) {
 
@@ -131,6 +133,8 @@ int lerLinha(FILE * fileWb, long RRN, char * removido, int * nroInscricao, doubl
 
                 read = fread(&auxTamanho, sizeof (int), 1, fileWb);
 
+                auxTamanho--;
+                
                 if (read) {
                     //le a tag
                     fread(&auxTagCampo, sizeof (char), 1, fileWb);
@@ -327,43 +331,56 @@ int main() {
 
                         char * cidade = strsep(&result, ",");
 
-                        /*int tamanhoCidade = strlen(cidade) + 1;
-                        if (tamanhoCidade > 1) {*/
-                        int tamanhoCidade = strlen(cidade);
-                        if (tamanhoCidade > 0) {
+                        //add 1 para o \0
+                        int tamanhoCidade = strlen(cidade)+1;
+                        if (tamanhoCidade > 1) {
                             //concatena com \0
                             cidade = strncat(cidade, "\0", tamanhoCidade);
 
+                            //add o char tagCampoCidade
+                            tamanhoCidade++;
                             //salva o tamanho do campo
                             fwrite(&tamanhoCidade, sizeof (tamanhoCidade), 1, wbFile);
 
+                            //remove o char tagCampoCIdade
+                            tamanhoCidade--;
+                            
                             //salva a tag do campo
                             char tagCampoCidade = TAG_CAMPO_CIDADE;
                             fwrite(&tagCampoCidade, sizeof (char), 1, wbFile);
 
                             fwrite(cidade, tamanhoCidade, 1, wbFile);
 
+                            //5 = int + tagCampoCIdade
                             totalBytes += 5 + tamanhoCidade;
                         }
 
                         char * nomeEscola = strsep(&result, ",");
 
-                        int tamanhoEscola = strlen(nomeEscola);
+                        //soma 1 do \0
+                        int tamanhoEscola = strlen(nomeEscola)+1;
 
-                        if (tamanhoEscola > 0) {
+                        if (tamanhoEscola > 1) {
 
                             //concatena com \0
                             nomeEscola = strncat(nomeEscola, "\0", tamanhoEscola);
 
+                            //soma 1 do char tagCampoEscola
+                            tamanhoEscola++;
+                            
                             //salva o tamanho do campo
                             fwrite(&tamanhoEscola, sizeof (tamanhoEscola), 1, wbFile);
 
+                            //remove 1 do tagCampoEscola
+                            tamanhoEscola--;
+                            
                             //salva a tag do campo
                             char tagCampoEscola = TAG_CAMPO_ESCOLA;
                             fwrite(&tagCampoEscola, sizeof (char), 1, wbFile);
 
                             fwrite(nomeEscola, tamanhoEscola, 1, wbFile);
 
+                            //5 = int tamanho + char tag
                             totalBytes += 5 + tamanhoEscola;
                         }
 
