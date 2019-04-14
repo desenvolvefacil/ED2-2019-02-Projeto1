@@ -22,6 +22,8 @@
 #define NAO_REMOVIDO '-'
 #define TAG_CAMPO_CIDADE '4'
 #define TAG_CAMPO_ESCOLA '5'
+#define ARQUIVO_ABERTO_ESCRITA '0'
+#define ARQUIVO_FECHADO_ESCRITA '1'
 
 /*
 //comando a ser lido
@@ -160,6 +162,32 @@ int lerLinha(FILE * fileWb, long RRN, char * removido, int * nroInscricao, doubl
     return * nroInscricao;
 }
 
+/**
+ * Abre um arquivo e verifica sua integridade
+ * @param nomeArquivo
+ * @param modo
+ * @return 
+ */
+FILE * abrirArquivoLeitura(char * nomeArquivo, char * modo){
+    FILE * file = fopen(nomeArquivo,modo);
+    
+    if(file){
+        char status = ARQUIVO_ABERTO_ESCRITA;
+        
+        //le o primeiro char para verificar a integridade
+        fread(&status,sizeof(char),1,file);
+        
+        if(status==ARQUIVO_ABERTO_ESCRITA){
+            fclose(file);
+            file=NULL;
+        }
+        
+    }
+    
+    return file;
+}
+
+
 /*
  * Função Principal
  */
@@ -229,8 +257,8 @@ int main() {
 
                         //recolhe os dados do cabecalho
 
-                        //grava o status
-                        char status = '1';
+                        //grava o status como arquivo aberto pra escrita
+                        char status = ARQUIVO_ABERTO_ESCRITA;
                         fwrite(&status, sizeof (status), 1, wbFile);
 
                         //grava o topo da pilha
@@ -401,7 +429,7 @@ int main() {
             //atualiza o status pra 0
             //posiciona o cursor pro inicio do arquivo
             fseek(wbFile, 0, SEEK_SET);
-            char status = '0';
+            char status = ARQUIVO_FECHADO_ESCRITA;
             fwrite(&status, sizeof (char), 1, wbFile);
 
             //printf("%p", wbFile);
@@ -421,9 +449,9 @@ int main() {
 
         long vez = 0;
 
-        FILE *fileWb = fopen(nomeArquivo, "rb");
+        FILE *fileWb = abrirArquivoLeitura(nomeArquivo, "rb");
 
-        if (fileWb != NULL) {
+        if (fileWb) {
 
             while (!feof(fileWb)) {
                 char removido;
@@ -510,9 +538,9 @@ int main() {
 
             long vez = 0;
 
-            FILE *fileWb = fopen(nomeArquivo, "rb");
+            FILE *fileWb = abrirArquivoLeitura(nomeArquivo, "rb");
 
-            if (fileWb != NULL) {
+            if (fileWb) {
 
                 while (!feof(fileWb)) {
                     char removido;
@@ -626,9 +654,9 @@ int main() {
 
         if (RRN >= 0) {
 
-            FILE *fileWb = fopen(nomeArquivo, "rb");
+            FILE *fileWb = abrirArquivoLeitura(nomeArquivo, "rb");
 
-            if (fileWb != NULL) {
+            if (fileWb) {
 
                 char removido;
                 //int encadeamento;
