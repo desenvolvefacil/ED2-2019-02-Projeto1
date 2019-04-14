@@ -1,1 +1,4 @@
-/wbfile.bin
+/*.bin
+/*.mk
+/*.bash
+/*.xml
