@@ -136,6 +136,7 @@ int lerLinha(FILE * fileWb, long RRN, char * removido, int * nroInscricao, doubl
                 //verifica se é uma tagValida
                 if (auxTagCampo == TAG_CAMPO_CIDADE) {
 
+                    //le o campo cidade
                     fread(cidade, auxTamanho, 1, fileWb);
 
                     read = fread(&auxTamanho, sizeof (int), 1, fileWb);
@@ -148,20 +149,21 @@ int lerLinha(FILE * fileWb, long RRN, char * removido, int * nroInscricao, doubl
 
                         //verifica se é uma tag validae
                         if (auxTagCampo == TAG_CAMPO_ESCOLA) {
-
+                            //le o campo escolha
                             fread(nomeEscola, auxTamanho, 1, fileWb);
                         }
 
                     }
 
                 } else if (auxTagCampo == TAG_CAMPO_ESCOLA) {
-
+                    //le o campo escolha
                     fread(nomeEscola, auxTamanho, 1, fileWb);
                 }
             }
         }
     }
 
+    //retorn o numero de inscricao ou 0
     return * nroInscricao;
 }
 
@@ -218,22 +220,26 @@ int main() {
     //verifica o inteiro digitado no comando
     opc = atoi(strsep(&comando, " "));
 
-    // exemplo de comando
-    // 1 arquivo.csv 
+
     if (opc == 1) {
+        // exemplo de comando
+        // 1 arquivo.csv 
 
         char * nomeArquivo = strsep(&comando, "\0");
 
+        //tenta abrir o arquivo csv em modo leitura
         FILE * file = fopen(nomeArquivo, "r");
 
+        //se conseguiu abrir o arquivo
         if (file) {
 
-            //cria o arquivo para salvar os dados
+            //cria o arquivo para salvar os dados em modo binario
             FILE * wbFile = fopen(NOME_ARQUIVO_WB_SAVE, "wb");
 
             char buff[200];
 
-            int vez = 1;
+            //vez = 1 lendo dados do cacecalho
+            long vez = 1;
 
             while (!feof(file)) {
                 // Lê uma linha (inclusive com o '\n')
@@ -355,43 +361,51 @@ int main() {
                         //grava no arquivo binario
                         fwrite(&nota, sizeof (nota), 1, wbFile);
 
+                        //seta data nula padrao
                         tmp = strsep(&result, ",");
                         char data[10] = "\0@@@@@@@@@";
 
+                        //caso conseguiui ler campo data do arquivo copia para variavel
                         if (strlen(tmp)) {
                             strncpy(data, tmp, sizeof (data));
                         }
 
+                        //grava a data no arquivo binario
                         fwrite(&data, sizeof (data), 1, wbFile);
 
+                        //pega o tamanho dos campos fixo
                         size_t totalBytes = 27;
 
+                        //tenta ler o campo cidade
                         char * cidade = strsep(&result, ",");
 
                         //add 1 para o \0
                         int tamanhoCidade = strlen(cidade) + 1;
                         if (tamanhoCidade > 1) {
-                            //concatena com \0
+                            //concatena com \0 no final d string
                             cidade = strncat(cidade, "\0", tamanhoCidade);
 
-                            //add o char tagCampoCidade
+                            //add o char tagCampoCidade no tamanho do campo
                             tamanhoCidade++;
+
                             //salva o tamanho do campo
                             fwrite(&tamanhoCidade, sizeof (tamanhoCidade), 1, wbFile);
 
-                            //remove o char tagCampoCIdade
+                            //remove o char tagCampoCidade para salvar a string cidade
                             tamanhoCidade--;
 
-                            //salva a tag do campo
+                            //escreve a tag do campo
                             char tagCampoCidade = TAG_CAMPO_CIDADE;
                             fwrite(&tagCampoCidade, sizeof (char), 1, wbFile);
 
+                            //escreve a string cidade no arquivo
                             fwrite(cidade, tamanhoCidade, 1, wbFile);
 
-                            //5 = int + tagCampoCIdade
+                            // 5 = int (4) + tagCampoCIdade(1)
                             totalBytes += 5 + tamanhoCidade;
                         }
 
+                        //tenta ler o nomeEscola
                         char * nomeEscola = strsep(&result, ",");
 
                         //soma 1 do \0
@@ -424,15 +438,19 @@ int main() {
 
                         //escreve o lixo para completar o registro
                         int i, total = TAMANHO_REGISTRO - totalBytes;
+                        //cria a variavel com tamanho que falta
                         char * lixo = calloc(total, 1);
+                        //for para setar @ nos bytes faltantes
                         for (i = 0; i < total; i++) {
                             lixo[i] = '@';
                         }
+                        //escreve em arquivo o lixo
                         fwrite(&lixo, total, 1, wbFile);
                         free(lixo);
                         lixo = NULL;
                     }
                 }
+
 
                 result = NULL;
                 vez++;
@@ -441,29 +459,34 @@ int main() {
 
             }
 
-            //atualiza o status pra 0
+            //atualiza o status para ARQUIVO_FECHADO_ESCRITA 1
             //posiciona o cursor pro inicio do arquivo
             fseek(wbFile, 0, SEEK_SET);
             char status = ARQUIVO_FECHADO_ESCRITA;
             fwrite(&status, sizeof (char), 1, wbFile);
 
-            //printf("%p", wbFile);
+            //fecha o arquivo binario
             fclose(wbFile);
+
+            //fecha o arquivo csv
             fclose(file);
 
+            //mostra o nome do arquivo salvo
             printf(NOME_ARQUIVO_WB_SAVE);
 
         } else {
             printf("Falha no carregamento do arquivo.");
         }
     } else if (opc == 2) {
+        // exemplo de comando
+        // 2 arquivoTrab1si.bin 
+
         char * nomeArquivo = strsep(&comando, "\0");
 
-        //exit(0);
-        //char buff2[200];
-
+        //numero do registro que esta sendo lido ou RRN
         long vez = 0;
 
+        //tenta abrir o arquivo pra modo leitura binario
         FILE *fileWb = abrirArquivoLeitura(nomeArquivo, "rb");
 
         if (fileWb) {
@@ -479,24 +502,18 @@ int main() {
                 char cidade[100] = "\0"; // = NULL;
                 char nomeEscola[100] = "\0"; // = NULL;
 
-
+                //se conseguiu ler a linha
                 if (lerLinha(fileWb, vez, &removido, &nroInscricao, &nota, data, cidade, nomeEscola)) {
-
+                    //se o registro não esta removido logicamente
                     if (removido == NAO_REMOVIDO) {
                         imprimirTela(nroInscricao, nota, data, cidade, nomeEscola);
                     }
                 }
-                //exit(0);
-                //printf("\n");
 
                 vez++;
             }
 
-            /*if (vez >= 4999) {
-                int a = 10;
-            }*/
-
-
+            //fecha o arquivo
             fclose(fileWb);
 
 
@@ -525,13 +542,6 @@ int main() {
         char * parametroNome = strsep(&comando, " ");
 
         char * parametroValor = strsep(&comando, "\0");
-
-        //tenta pegar o resto do parametro caso haja
-        //printf("%s\n",comando);
-        //char * aux = NULL;
-
-
-        //printf("%s",parametroValor);
 
         //nome dos campos para comparacao
         char NRO_INSCRICAO[] = "nroInscricao";
@@ -615,8 +625,6 @@ int main() {
 
                         }
                     }
-                    //exit(0);
-                    //printf("\n");
 
                     vez++;
                 }
