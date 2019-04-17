@@ -26,7 +26,7 @@
 #define ARQUIVO_FECHADO_ESCRITA '1'
 
 /*
-//comando a ser lido
+//comandos de teste
 1 csv.csv
 2 arquivoTrab1si.bin
 3 arquivoTrab1si.bin nroInscricao 332
@@ -40,7 +40,7 @@
  */
 
 /**
- *  Funcao que imprime os dados em tela
+ * Recebe os dados de uma linha e imprime em tela
  * @param nroInscricao
  * @param nota
  * @param data
@@ -75,7 +75,7 @@ void imprimirTela(int nroInscricao, double nota, char * data, char * cidade, cha
 }
 
 /**
- * Lê uma linha do arquivo binario e retorna os dados da mesma
+ * Recebe o arquivo e RRN para ler o valor das variaveis
  * @param fileWb
  * @param RRN
  * @param removido
@@ -84,13 +84,12 @@ void imprimirTela(int nroInscricao, double nota, char * data, char * cidade, cha
  * @param data
  * @param cidade
  * @param nomeEscola
- * @return leu a linha
+ * @return nroInscricao caso seja lido ou 0 em caso de erro
  */
 int lerLinha(FILE * fileWb, long RRN, char * removido, int * nroInscricao, double * nota, char * data, char * cidade, char * nomeEscola) {
 
     int encadeamento;
 
-    //char * auxTexto;
     int auxTamanho;
     char auxTagCampo;
 
@@ -103,61 +102,65 @@ int lerLinha(FILE * fileWb, long RRN, char * removido, int * nroInscricao, doubl
     //ajusta o tamanho do salto tirando o valor atual do ponteiro do registro a ser obtido
     pular -= posAtual;
 
+    //tenta pular pra posição
     int seek = fseek(fileWb, pular, SEEK_CUR);
 
+    //fssek retorna 0 caso seja lido sem erros
+    if (!seek) {
+        //pega o atributo para verificar se o registro esta excluido logicamente
+        int read = fread(removido, sizeof (char), 1, fileWb);
 
-    //pega o atributo para verificar se o registro esta excluido logicamente
-    int read = fread(removido, sizeof (char), 1, fileWb);
-
-    //verifica se o registro não esta excluido e imprime em tela
-    if (read) {
-        fread(&encadeamento, sizeof (int), 1, fileWb);
-
-        fread(nroInscricao, sizeof (int), 1, fileWb);
-
-        fread(nota, sizeof (double), 1, fileWb);
-
-        fread(data, 10, 1, fileWb);
-
-
-        read = fread(&auxTamanho, sizeof (int), 1, fileWb);
-
+        //verifica se o registro não esta excluido e imprime em tela
         if (read) {
-            //le a tag
-            fread(&auxTagCampo, sizeof (char), 1, fileWb);
+            //le o valor de encadeamento
+            fread(&encadeamento, sizeof (int), 1, fileWb);
 
-            auxTamanho--;
-            
-            //verifica se é uma tagValida
-            if (auxTagCampo == TAG_CAMPO_CIDADE) {
+            //le o numero de inscricao
+            fread(nroInscricao, sizeof (int), 1, fileWb);
 
-                fread(cidade, auxTamanho, 1, fileWb);
+            //le a nota
+            fread(nota, sizeof (double), 1, fileWb);
 
-                read = fread(&auxTamanho, sizeof (int), 1, fileWb);
+            //le a data
+            fread(data, 10, 1, fileWb);
+
+            //tenta ler o tamanho da string
+            read = fread(&auxTamanho, sizeof (int), 1, fileWb);
+
+            if (read) {
+                //le a tag
+                fread(&auxTagCampo, sizeof (char), 1, fileWb);
 
                 auxTamanho--;
-                
-                if (read) {
-                    //le a tag
-                    fread(&auxTagCampo, sizeof (char), 1, fileWb);
 
-                    //verifica se é uma tag validae
-                    if (auxTagCampo == TAG_CAMPO_ESCOLA) {
-                        //nomeEscola = calloc(auxTamanho, sizeof (char));
-                        fread(nomeEscola, auxTamanho, 1, fileWb);
+                //verifica se é uma tagValida
+                if (auxTagCampo == TAG_CAMPO_CIDADE) {
 
-                        int a = 10;
+                    fread(cidade, auxTamanho, 1, fileWb);
+
+                    read = fread(&auxTamanho, sizeof (int), 1, fileWb);
+
+                    auxTamanho--;
+
+                    if (read) {
+                        //le a tag
+                        fread(&auxTagCampo, sizeof (char), 1, fileWb);
+
+                        //verifica se é uma tag validae
+                        if (auxTagCampo == TAG_CAMPO_ESCOLA) {
+
+                            fread(nomeEscola, auxTamanho, 1, fileWb);
+                        }
+
                     }
 
-                }
+                } else if (auxTagCampo == TAG_CAMPO_ESCOLA) {
 
-            } else if (auxTagCampo == TAG_CAMPO_ESCOLA) {
-                //nomeEscola = calloc(auxTamanho, sizeof (char));
-                fread(nomeEscola, auxTamanho, 1, fileWb);
+                    fread(nomeEscola, auxTamanho, 1, fileWb);
+                }
             }
         }
     }
-
 
     return * nroInscricao;
 }
@@ -166,27 +169,27 @@ int lerLinha(FILE * fileWb, long RRN, char * removido, int * nroInscricao, doubl
  * Abre um arquivo e verifica sua integridade
  * @param nomeArquivo
  * @param modo
- * @return 
+ * @return arquivo aberto ou nulo caso ocorra erro
  */
-FILE * abrirArquivoLeitura(char * nomeArquivo, char * modo){
-    FILE * file = fopen(nomeArquivo,modo);
-    
-    if(file){
+FILE * abrirArquivoLeitura(char * nomeArquivo, char * modo) {
+    FILE * file = fopen(nomeArquivo, modo);
+
+    if (file) {
         char status = ARQUIVO_ABERTO_ESCRITA;
-        
+
         //le o primeiro char para verificar a integridade
-        fread(&status,sizeof(char),1,file);
-        
-        if(status==ARQUIVO_ABERTO_ESCRITA){
+        fread(&status, sizeof (char), 1, file);
+
+        //se o arquivo estiver aberto, fecha e retorna nulo
+        if (status == ARQUIVO_ABERTO_ESCRITA) {
             fclose(file);
-            file=NULL;
+            file = NULL;
         }
-        
+
     }
-    
+
     return file;
 }
-
 
 /*
  * Função Principal
@@ -200,15 +203,13 @@ int main() {
     //varicavel que guarda a opcao selecioanda
     int opc = 0;
 
-
-
     //leitura do comando a ser executado
     fgets(comando, 100, stdin);
 
     //pega o tamnho do comando lido
     size_t ln = strlen(comando) - 1;
 
-    //elimina o \n caso houve para ajuda no processamento
+    //elimina o \n caso houver para ajudar e evitar erros no processamento
     if (comando[ln] == '\n') {
         comando[ln] = '\0';
     }
@@ -226,7 +227,6 @@ int main() {
         FILE * file = fopen(nomeArquivo, "r");
 
         if (file) {
-
 
             //cria o arquivo para salvar os dados
             FILE * wbFile = fopen(NOME_ARQUIVO_WB_SAVE, "wb");
@@ -255,7 +255,7 @@ int main() {
 
                     if (vez == 1) {
 
-                        //recolhe os dados do cabecalho
+                        //escreve os dados do cabecalho
 
                         //grava o status como arquivo aberto pra escrita
                         char status = ARQUIVO_ABERTO_ESCRITA;
@@ -286,7 +286,6 @@ int main() {
                         char desCampo3[55] = "data\0@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@";
                         fwrite(&desCampo3, sizeof (desCampo3), 1, wbFile);
 
-
                         //grava os dados do campo 4
                         char tagCampo4 = '4';
                         fwrite(&tagCampo4, sizeof (tagCampo4), 1, wbFile);
@@ -302,15 +301,27 @@ int main() {
                         char desCampo5[55] = "nome da escola de ensino medio\0@@@@@@@@@@@@@@@@@@@@@@@@";
                         fwrite(&desCampo5, sizeof (desCampo5), 1, wbFile);
 
-
-                        char arroba = '@';
-
                         //for para completar com @ e deixar o cabeçalho em uma pagina só
                         int i;
 
-                        for (i = 285; i < TAMANHO_PAGINA; i++) {
-                            fwrite(&arroba, sizeof (arroba), 1, wbFile);
+                        int total = 13000;
+                        char * lixo = calloc(total, sizeof (char));
+
+                        // por algum motivo o fwrite so esta escrevendo ate 13000 caracteres por vez
+                        for (i = 0; i < total; i++) {
+                            lixo[i] = '@';
                         }
+
+                        fwrite(&lixo, total, 1, wbFile);
+
+                        //termina de escrever o lixo
+                        total = TAMANHO_PAGINA - total - 285;
+                        fwrite(&lixo, total, 1, wbFile);
+
+                        //libera memoria do lixo
+                        free(lixo);
+                        lixo = NULL;
+
                         //break;
 
                     } else {
@@ -325,21 +336,19 @@ int main() {
                         //começa a ler os dados
                         char * tmp = strsep(&result, ",");
 
+                        //convert a string pra inteiro
                         int nroInscricao = atoi(tmp);
-
-                        /*if (nroInscricao == 13185) {
-                            int a = 10;
-                        }*/
 
                         //grava no arquivo binario
                         fwrite(&nroInscricao, sizeof (nroInscricao), 1, wbFile);
 
-                        //pega  anote
+                        //pega  a nota
                         tmp = strsep(&result, ",");
 
                         double nota = -1;
 
                         if (strlen(tmp)) {
+                            //caso haja texto, converte o mesmo pra double
                             nota = strtod(tmp, NULL);
                         }
 
@@ -360,7 +369,7 @@ int main() {
                         char * cidade = strsep(&result, ",");
 
                         //add 1 para o \0
-                        int tamanhoCidade = strlen(cidade)+1;
+                        int tamanhoCidade = strlen(cidade) + 1;
                         if (tamanhoCidade > 1) {
                             //concatena com \0
                             cidade = strncat(cidade, "\0", tamanhoCidade);
@@ -372,7 +381,7 @@ int main() {
 
                             //remove o char tagCampoCIdade
                             tamanhoCidade--;
-                            
+
                             //salva a tag do campo
                             char tagCampoCidade = TAG_CAMPO_CIDADE;
                             fwrite(&tagCampoCidade, sizeof (char), 1, wbFile);
@@ -386,7 +395,7 @@ int main() {
                         char * nomeEscola = strsep(&result, ",");
 
                         //soma 1 do \0
-                        int tamanhoEscola = strlen(nomeEscola)+1;
+                        int tamanhoEscola = strlen(nomeEscola) + 1;
 
                         if (tamanhoEscola > 1) {
 
@@ -395,13 +404,13 @@ int main() {
 
                             //soma 1 do char tagCampoEscola
                             tamanhoEscola++;
-                            
+
                             //salva o tamanho do campo
                             fwrite(&tamanhoEscola, sizeof (tamanhoEscola), 1, wbFile);
 
                             //remove 1 do tagCampoEscola
                             tamanhoEscola--;
-                            
+
                             //salva a tag do campo
                             char tagCampoEscola = TAG_CAMPO_ESCOLA;
                             fwrite(&tagCampoEscola, sizeof (char), 1, wbFile);
@@ -412,10 +421,16 @@ int main() {
                             totalBytes += 5 + tamanhoEscola;
                         }
 
-                        char arroba = '@';
-                        for (; totalBytes < TAMANHO_REGISTRO; totalBytes++) {
-                            fwrite(&arroba, sizeof (arroba), 1, wbFile);
+
+                        //escreve o lixo para completar o registro
+                        int i, total = TAMANHO_REGISTRO - totalBytes;
+                        char * lixo = calloc(total, 1);
+                        for (i = 0; i < total; i++) {
+                            lixo[i] = '@';
                         }
+                        fwrite(&lixo, total, 1, wbFile);
+                        free(lixo);
+                        lixo = NULL;
                     }
                 }
 
@@ -476,9 +491,6 @@ int main() {
 
                 vez++;
             }
-
-
-
 
             /*if (vez >= 4999) {
                 int a = 10;
@@ -702,6 +714,9 @@ int main() {
         printf("Opcao Invalida");
     }
 
+    //libera memoria do comando
+    free(comando);
+    comando = NULL;
 
     return (0);
 }
